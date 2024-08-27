@@ -10,13 +10,18 @@ This project is designed to calculate and report the uptime and downtime of stor
 - **Uptime/Downtime Calculation**: Calculates the uptime and downtime of stores for specific time intervals.
 - **Customizable Timezones**: Supports different timezones for stores, ensuring accurate calculations based on local business hours.
 - **Optimized with MongoDB Indexes**: MongoDB indexes are used on collections to optimize query performance, especially for large datasets.
-- **Multithreading**: The report generation process can be optimized using multithreading for faster execution.
+MongoDB indexes are created on the following fields:
+   1. **storeStatus Collection**: An index on the store_id and timestamp_utc fields improves the speed of querying store status within specific time ranges.
+   2. **businessHours Collection**: An index on the store_id field ensures quick retrieval of business hours for each store.
+   3. **timezones Collection**: An index on the store_id field facilitates fast lookup of timezones.
+
+
 
 ## Project Structure
 
 - **`app.py`**: Flask application that provides endpoints to trigger report generation and retrieve report status.
 - **`reportGenerator.py`**: Contains the `ReportGenerator` class responsible for generating the uptime/downtime report.
-- **`uptimeCalculator.py`**: Contains classes and methods to calculate uptime and downtime based on store status and business hours.
+- **`utils.py`**: Contains classes and methods to calculate uptime and downtime based on store status and business hours.
 - **`database.py`**: Handles the MongoDB database connection and initialization.
 
 ## How Uptime/Downtime is Calculated
@@ -55,3 +60,14 @@ end_time = datetime.now()
 uptime, downtime = calculate_uptime_downtime(store_id="store_123", start_time=start_time, end_time=end_time)
 
 print(f"Uptime: {uptime} hours, Downtime: {downtime} hours")
+```
+### API Endpoints
+1. /trigger_report [POST]
+   - **Description**: Triggers the report generation process.
+   - **Response**: Returns a unique report_id to track the report generation status.
+2. /get_report [GET]
+   - **Description**: Retrieves the status of the report generation and, if complete, provides the report data.
+   - **Parameters**: report_id (string)
+   - **Response**:
+     - If the report is still running: {"status": "Running"}
+     - If the report is complete: {"status": "Complete", "data": [...]}
